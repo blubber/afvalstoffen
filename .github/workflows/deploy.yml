@@ -1,0 +1,44 @@
+name: Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setting up Elixir
+        run: |
+          sudo add-apt-repository -y ppa:rabbitmq/rabbitmq-erlang
+          sudo apt update
+          sudo apt install erlang erlang-dev elixir
+          elixir --version
+      - name: Setting up SSH
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir $HOME/.ssh
+          ssh-keyscan afvalstoffen.isogram.nl >> $HOME/.ssh/known_hosts
+          echo "${{ secrets.SSH_KEY }}" > $HOME/.ssh/id_ed25519
+          chmod 600 $HOME/.ssh/id_ed25519
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-add $HOME/.ssh/id_ed25519
+
+      - uses: actions/checkout@v2
+      - name: Building app
+        run: |
+          mix deps.get --only prod
+          MIX_ENV=prod mix compile
+          MIX_ENV=prod mix assets.deploy
+          MIX_ENV=prod mix release
+          tar -czf $HOME/release.tar.gz -C _build/prod/rel afvalstoffen
+      - name: Deploying
+        run: |
+          scp $HOME/release.tar.gz afvalstoffen@afvalstoffen.isogram.nl:
+          ssh afvalstoffen@afvalstoffen.isogram.nl << EOF
+            set -ex
+            tar xzf release.tar.gz
+            rm -rf release.tar.gz
+            sudo /usr/bin/systemctl restart afvalstoffen.service
+          EOF
