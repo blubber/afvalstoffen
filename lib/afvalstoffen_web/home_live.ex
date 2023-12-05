@@ -90,13 +90,19 @@ defmodule AfvalstoffenWeb.HomeLive do
             </div>
           </div>
 
-          <div class="mt-4">
-            <a
-              href={~p"/afvalstoffen.ics" <> "?#{query}"}
-              class="block w-full flex justify-center rounded-md bg-blue-500 text-white leading-10 font-bold hover:bg-blue-400 cursor-pointer"
-            >
-              Open in kalender
-            </a>
+          <div class="mt-4 flex flex-col gap-4">
+            <div>
+              <a
+                href={~p"/afvalstoffen.ics" <> "?#{query}"}
+                class="block w-full flex justify-center rounded-md bg-blue-500 text-white leading-10 font-bold hover:bg-blue-400 cursor-pointer"
+              >
+                Open in kalender
+              </a>
+            </div>
+            <div class="text-sm text-neutral-700 dark:text-neutral-300">
+              Als het openen niet werkt kun je de link ook kopieren en in je agenda
+              toevoegen als subscription.
+            </div>
           </div>
         </div>
       </div>
