@@ -8,27 +8,13 @@ defmodule AfvalstoffenWeb.HomeLive do
 
   def render(assigns) do
     changeset = assigns.changeset
-
-    query =
-      %{
-        "postal_code" => Changeset.get_field(changeset, :postal_code),
-        "number" => Changeset.get_field(changeset, :number),
-        "addition" => Changeset.get_field(changeset, :addition),
-        "label_non_recyclable" => Changeset.get_field(changeset, :label_non_recyclable),
-        "label_organic" => Changeset.get_field(changeset, :label_organic),
-        "label_packaging" => Changeset.get_field(changeset, :label_packaging),
-        "label_paper" => Changeset.get_field(changeset, :label_paper),
-        "label_christmass_tree" => Changeset.get_field(changeset, :label_christmass_tree),
-        "alarm1" => Changeset.get_field(changeset, :alarm1),
-        "alarm2" => Changeset.get_field(changeset, :alarm2)
-      }
-      |> URI.encode_query()
+    query = Calendar.encode_query(changeset)
 
     assigns =
       assigns
       |> assign_example_calendar()
       |> assign_address()
-      |> assign(query: query)
+      |> assign(link: ~p"/afvalstoffen.ics" <> "?#{query}")
 
     ~H"""
     <div class="w-full max-w-screen-sm mx-auto">
@@ -93,7 +79,7 @@ defmodule AfvalstoffenWeb.HomeLive do
           <div class="mt-4 flex flex-col gap-4">
             <div>
               <a
-                href={~p"/afvalstoffen.ics" <> "?#{query}"}
+                href={@link}
                 class="block w-full flex justify-center rounded-md bg-blue-500 text-white leading-10 font-bold hover:bg-blue-400 cursor-pointer"
               >
                 Open in kalender

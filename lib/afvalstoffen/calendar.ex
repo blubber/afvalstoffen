@@ -2,6 +2,7 @@ defmodule Afvalstoffen.Calendar do
   use Ecto.Schema
 
   import Ecto.Changeset
+  alias Ecto.Changeset
 
   alias Afvalstoffen.Address
 
@@ -120,6 +121,28 @@ defmodule Afvalstoffen.Calendar do
     UID:#{uid}
     #{alarms}END:VEVENT
     """
+  end
+
+  def encode_query(%Changeset{} = changeset) do
+    %{
+      "postal_code" => get_field(changeset, :postal_code),
+      "number" => get_field(changeset, :number),
+      "addition" => get_field(changeset, :addition),
+      "label_non_recyclable" => get_field(changeset, :label_non_recyclable),
+      "label_organic" => get_field(changeset, :label_organic),
+      "label_packaging" => get_field(changeset, :label_packaging),
+      "label_paper" => get_field(changeset, :label_paper),
+      "label_christmass_tree" => get_field(changeset, :label_christmass_tree),
+      "alarm1" => get_field(changeset, :alarm1),
+      "alarm2" => get_field(changeset, :alarm2)
+    }
+    |> URI.encode_query()
+  end
+
+  def encode_query(%__MODULE__{} = calendar) do
+    calendar
+    |> Map.from_struct()
+    |> URI.encode_query()
   end
 
   defp create_alarm(offset, summary) do
