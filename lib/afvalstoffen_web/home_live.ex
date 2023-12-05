@@ -20,7 +20,7 @@ defmodule AfvalstoffenWeb.HomeLive do
         "label_paper" => Changeset.get_field(changeset, :label_paper),
         "label_christmass_tree" => Changeset.get_field(changeset, :label_christmass_tree),
         "alarm1" => Changeset.get_field(changeset, :alarm1),
-        "alarm2" => Changeset.get_field(changeset, :alarm2),
+        "alarm2" => Changeset.get_field(changeset, :alarm2)
       }
       |> URI.encode_query()
 
@@ -29,12 +29,6 @@ defmodule AfvalstoffenWeb.HomeLive do
       |> assign_example_calendar()
       |> assign_address()
       |> assign(query: query)
-      |> assign(
-        show_modal:
-          Keyword.has_key?(assigns.changeset.errors, :postal_code) or
-            Keyword.has_key?(assigns.changeset.errors, :number) or
-            Keyword.has_key?(assigns.changeset.errors, :addition)
-      )
 
     ~H"""
     <div class="w-full max-w-screen-sm mx-auto">
@@ -51,33 +45,11 @@ defmodule AfvalstoffenWeb.HomeLive do
       <div class="grid grid-cols-1  md:grid-cols-2 gap-4 sm:gap-8 mt-6">
         <div>
           <.simple_form for={@form} id="form" phx-change="validate">
-            <div>
-              <strong>Address</strong>: <%= @address %>
-              <%= if @address != "" do %>
-                —
-              <% end %>
-              <button
-                type="button"
-                class="lead-4 text-sky-600 dark:text-sky-400"
-                phx-click={show_modal("address-form")}
-              >
-                Wijzigen
-              </button>
-            </div>
-            <.modal show={@show_modal} id="address-form" title="Addres">
-              <div class="mt-4 flex flex-col gap-2">
-                <.input field={@form[:postal_code]} type="text" label="Postcode" />
-                <.input field={@form[:number]} type="text" label="Huisnummer" />
-                <.input field={@form[:addition]} type="text" label="Toevoeging (optioneel)" />
-              </div>
-              <div class="mt-4 flex flex-row gap-4 justify-end">
-                <.button type="button" phx-click={hide_modal("address-form")}>
-                  Opslaan
-                </.button>
-              </div>
-            </.modal>
-
             <div class="mt-4 flex flex-col gap-2">
+              <.input field={@form[:postal_code]} type="text" label="Postcode" />
+              <.input field={@form[:number]} type="text" label="Huisnummer" />
+              <.input field={@form[:addition]} type="text" label="Toevoeging" />
+
               <.input field={@form[:label_non_recyclable]} type="text" label="Restafval" />
               <.input field={@form[:label_organic]} type="text" label="GFT" />
               <.input field={@form[:label_paper]} type="text" label="Papier" />
