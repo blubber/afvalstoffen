@@ -2,7 +2,7 @@ defmodule AfvalstoffenWeb.HomeLive do
   use AfvalstoffenWeb, :live_view
 
   alias Ecto.Changeset
-  alias Phoenix.LiveView.JS
+  alias Phoenix.LiveView.AsyncResult
 
   alias Afvalstoffen.Calendar
 
@@ -13,7 +13,6 @@ defmodule AfvalstoffenWeb.HomeLive do
     assigns =
       assigns
       |> assign_example_calendar()
-      |> assign_address()
       |> assign(link: ~p"/afvalstoffen.ics" <> "?#{query}")
 
     ~H"""
@@ -76,19 +75,29 @@ defmodule AfvalstoffenWeb.HomeLive do
             </div>
           </div>
 
-          <div class="mt-4 flex flex-col gap-4">
-            <div>
-              <a
-                href={@link}
-                class="block w-full flex justify-center rounded-md bg-blue-500 text-white leading-10 font-bold hover:bg-blue-400 cursor-pointer"
-              >
-                Open in kalender
-              </a>
-            </div>
-            <div class="text-sm text-neutral-700 dark:text-neutral-300">
-              Als het openen niet werkt kun je de link ook kopieren en in je agenda
-              toevoegen als subscription.
-            </div>
+          <div :if={!@address_valid} class="mt-4">
+            <.error>
+              Het opgegeven adres is niet geldig.
+            </.error>
+          </div>
+
+          <div :if={@address_valid} class="mt-4 flex flex-col gap-4">
+            <.async_result :let={_events} assign={@events}>
+              <:loading>Bezig met laden</:loading>
+              <:failed :let={_reason}>Onbekend adres</:failed>
+              <div>
+                <a
+                  href={@link}
+                  class="block w-full flex justify-center rounded-md bg-blue-500 text-white leading-10 font-bold hover:bg-blue-400 cursor-pointer"
+                >
+                  Open in kalender
+                </a>
+              </div>
+              <div class="text-sm text-neutral-700 dark:text-neutral-300">
+                Als het openen niet werkt kun je de link ook kopieren en in je agenda
+                toevoegen als subscription.
+              </div>
+            </.async_result>
           </div>
         </div>
       </div>
@@ -128,7 +137,18 @@ defmodule AfvalstoffenWeb.HomeLive do
 
     changeset = %Calendar{} |> Calendar.changeset(params)
 
-    {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
+    address_valid =
+      [:postal_code, :number, :addition]
+      |> Enum.map(&(!Keyword.has_key?(changeset.errors, &1)))
+      |> Enum.all?()
+
+    {
+      :ok,
+      socket
+      |> assign_form(changeset)
+      |> maybe_async_assign_events(address_valid)
+      |> assign(address_valid: address_valid)
+    }
   end
 
   def handle_event("validate", %{"calendar" => calendar}, socket) do
@@ -136,7 +156,18 @@ defmodule AfvalstoffenWeb.HomeLive do
       Calendar.changeset(%Calendar{}, calendar)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign_form(socket, changeset)}
+    address_valid =
+      [:postal_code, :number, :addition]
+      |> Enum.map(&(!Keyword.has_key?(changeset.errors, &1)))
+      |> Enum.all?()
+
+    {
+      :noreply,
+      socket
+      |> assign_form(changeset)
+      |> maybe_async_assign_events(address_valid)
+      |> assign(address_valid: address_valid)
+    }
   end
 
   defp assign_form(socket, changeset) do
@@ -202,16 +233,49 @@ defmodule AfvalstoffenWeb.HomeLive do
     |> assign(label: assigns.form[:label_non_recyclable].value)
   end
 
-  defp assign_address(assigns) do
-    postal_code = Changeset.get_field(assigns.changeset, :postal_code)
-    number = Changeset.get_field(assigns.changeset, :number)
-    addition = Changeset.get_field(assigns.changeset, :addition)
+  defp maybe_async_assign_events(socket, true) do
+    changeset = socket.assigns.changeset
 
-    number_part = if number != "" and addition != "", do: "#{number}-#{addition}", else: number
-
-    assign(
-      assigns,
-      address: [postal_code, number_part] |> Enum.filter(&(&1 != "")) |> Enum.join(", ")
+    socket
+    |> assign(:events, AsyncResult.loading())
+    |> start_async(
+      :events,
+      fn -> fetch_events(changeset) end
     )
+  end
+
+  defp maybe_async_assign_events(socket, false),
+    do: assign(socket, :events, AsyncResult.loading())
+
+  defp fetch_events(changeset) do
+    AfvalstoffenWeb.WebContentCache.fetch(
+      Changeset.get_field(changeset, :postal_code),
+      Changeset.get_field(changeset, :number),
+      Changeset.get_field(changeset, :addition)
+    )
+  end
+
+  def handle_async(:events, {:ok, :not_found}, socket) do
+    {
+      :noreply,
+      assign(
+        socket,
+        :events,
+        AsyncResult.loading()
+        |> AsyncResult.failed({:error, :reason})
+      )
+    }
+  end
+
+  def handle_async(:events, {:ok, events}, socket) do
+    {
+      :noreply,
+      assign(
+        socket,
+        :events,
+        AsyncResult.loading()
+        |> AsyncResult.ok(events)
+      )
+    }
   end
 end
