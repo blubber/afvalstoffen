@@ -23,11 +23,15 @@ defmodule AfvalstoffenWeb.WebContentCache do
     else
       _ ->
         {ttl, events} =
-          try do
-            {86399, Afvalstoffen.WebContent.fetch(postal_code, number, addition)}
-          rescue
-            Afvalstoffen.WebContent.NotFound -> {3600, :not_found}
-            _ -> {60, :error}
+          case Afvalstoffen.WebContent.fetch(postal_code, number, addition) do
+            {:ok, events} ->
+              {86499, events}
+
+            {:error, :not_found} ->
+              {3600, :not_found}
+
+            {:error, _} ->
+              {60, :error}
           end
 
         timeout = DateTime.add(now, ttl)

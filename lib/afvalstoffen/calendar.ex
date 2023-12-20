@@ -92,6 +92,7 @@ defmodule Afvalstoffen.Calendar do
         :paper -> calendar.label_paper
         :packaging -> calendar.label_packaging
         :christmass_tree -> calendar.label_christmass_tree
+        type -> "Onbekend: #{type}"
       end
 
     uid = :crypto.hash(:sha, summary <> Date.to_string(date)) |> Base.encode16()
