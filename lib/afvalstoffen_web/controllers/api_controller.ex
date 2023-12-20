@@ -3,20 +3,20 @@ defmodule AfvalstoffenWeb.ApiController do
 
   alias Ecto.Changeset
 
-  alias Afvalstoffen.Address
+  alias Afvalstoffen.Calendar
 
   def index(conn, params) do
     changeset =
-      %Address{}
-      |> Address.changeset(params)
+      %Calendar{}
+      |> Calendar.changeset(params)
 
-    with {:ok, address} <- Changeset.apply_action(changeset, :insert),
+    with {:ok, calendar} <- Changeset.apply_action(changeset, :insert),
          events when is_list(events) <-
            AfvalstoffenWeb.WebContentCache.fetch(
-             address.region,
-             address.postal_code,
-             address.number,
-             address.addition
+             calendar.region,
+             calendar.postal_code,
+             calendar.number,
+             calendar.addition
            ) do
       render(conn, :index, events: events)
     else

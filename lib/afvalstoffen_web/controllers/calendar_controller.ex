@@ -5,9 +5,9 @@ defmodule AfvalstoffenWeb.CalendarController do
     changeset = %Afvalstoffen.Calendar{} |> Afvalstoffen.Calendar.changeset(params)
 
     with {:ok, calendar} <- Ecto.Changeset.apply_action(changeset, :validatee) do
-      IO.inspect(calendar)
       events =
         AfvalstoffenWeb.WebContentCache.fetch(
+          calendar.region,
           calendar.postal_code,
           calendar.number,
           calendar.addition

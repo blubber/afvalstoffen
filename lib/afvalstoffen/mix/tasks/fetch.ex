@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Fetch do
   def run([postal_code, number, addition]) do
     Mix.Task.run("app.start")
 
-    r = WebContent.fetch(postal_code, number, addition)
+    r = WebContent.fetch(:brabant, postal_code, number, addition)
     IO.inspect(r)
   end
 end
