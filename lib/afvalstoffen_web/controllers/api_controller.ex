@@ -13,6 +13,7 @@ defmodule AfvalstoffenWeb.ApiController do
     with {:ok, address} <- Changeset.apply_action(changeset, :insert),
          events when is_list(events) <-
            AfvalstoffenWeb.WebContentCache.fetch(
+             address.region,
              address.postal_code,
              address.number,
              address.addition

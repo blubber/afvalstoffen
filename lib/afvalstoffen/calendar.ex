@@ -7,6 +7,7 @@ defmodule Afvalstoffen.Calendar do
   alias Afvalstoffen.Address
 
   schema "calendar" do
+    field(:region, Ecto.Enum, values: [:brabant, :twente], default: :brabant)
     field(:postal_code)
     field(:number)
     field(:addition, :string, default: "")
@@ -24,6 +25,7 @@ defmodule Afvalstoffen.Calendar do
   def changeset(parameters, params \\ %{}) do
     parameters
     |> cast(params, [
+      :region,
       :postal_code,
       :number,
       :addition,

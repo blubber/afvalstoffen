@@ -31,6 +31,12 @@ defmodule AfvalstoffenWeb.HomeLive do
         <div>
           <.simple_form for={@form} id="form" phx-change="validate">
             <div class="mt-4 flex flex-col gap-2">
+              <.input
+                field={@form[:region]}
+                type="select"
+                label="Regio"
+                options={[{"Brabant", :brabant}, {"Twente", :twente}]}
+              />
               <.input field={@form[:postal_code]} type="text" label="Postcode" />
               <.input field={@form[:number]} type="text" label="Huisnummer" />
               <.input field={@form[:addition]} type="text" label="Toevoeging" />
@@ -249,6 +255,7 @@ defmodule AfvalstoffenWeb.HomeLive do
 
   defp fetch_events(changeset) do
     AfvalstoffenWeb.WebContentCache.fetch(
+      Changeset.get_field(changeset, :region),
       Changeset.get_field(changeset, :postal_code),
       Changeset.get_field(changeset, :number),
       Changeset.get_field(changeset, :addition)

@@ -1,4 +1,4 @@
-defmodule Afvalstoffen.WebContent do
+defmodule Afvalstoffen.Source.Afvalstoffendienst do
   @months [
     "january",
     "february",
