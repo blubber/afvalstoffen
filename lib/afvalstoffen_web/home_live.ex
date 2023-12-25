@@ -37,9 +37,9 @@ defmodule AfvalstoffenWeb.HomeLive do
                 label="Regio"
                 options={[{"Brabant", :brabant}, {"Twente", :twente}]}
               />
-              <.input field={@form[:postal_code]} type="text" label="Postcode" />
-              <.input field={@form[:number]} type="text" label="Huisnummer" />
-              <.input field={@form[:addition]} type="text" label="Toevoeging" />
+              <.input field={@form[:postal_code]} type="text" label="Postcode" phx-debounce="600" />
+              <.input field={@form[:number]} type="text" label="Huisnummer" phx-debounce=600 />
+              <.input field={@form[:addition]} type="text" label="Toevoeging" phx-debounce="600" />
 
               <.input field={@form[:label_non_recyclable]} type="text" label="Restafval" />
               <.input field={@form[:label_organic]} type="text" label="GFT" />
